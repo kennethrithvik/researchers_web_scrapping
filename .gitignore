@@ -98,6 +98,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
+.ipynb_checkpoints/
 /site
 
 # mypy
