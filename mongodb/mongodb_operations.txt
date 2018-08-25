@@ -1,36 +1,35 @@
 //ad ids to all publications
-db.researchers.find({})
+db.singapore_researchers.find({})
   .forEach(function (doc) {
     doc.publications.forEach(function (publication) {
       publication._id=new ObjectId()
     });
-    db.researchers_copy.save(doc);
+    db.singapore_researchers.save(doc);
 });
 
 
 //create new publication collection
-db.researchers_copy.find().forEach(function(doc){
-    db.test.insert(doc.publications)
+db.singapore_researchers.find().forEach(function(doc){
+    db.singapore_publication.insert(doc.publications)
 });
 
 //create publications collection 
-db.singapore_researchers_copy.aggregate([
+db.singapore_researchers.aggregate([
     {$unwind:'$publications'       
     },
-    {$project:{_id:0,user_id:1,name:1,organisation:1,companies:1,person_url:1,schools:1,
-                edits:1,grants:1,awards:1,publications:1,research_areas:1,keywords:1,
-                tel_no:1,email:1,patents:1
+    {$project:{_id:0,author_name:"$publications.author",organisation:1,title:"$publications.title",author_id:"$_id",
+        year:"$publications.year",journal:"$publications.journal",vol_page:"$publications.vol:page"
                }
     },
-    {$out:"publications"
+    {$out:"singapore_publications"
     }
 ])
 
 //create index for publications
-db.publications.createIndex({"publications.year":1})
+db.singapore_publications.createIndex({"publications.year":1})
 
 //get no. of publications in each year
-db.publications.aggregate(
+db.singapore_publications.aggregate(
     [
     {$group:{_id:"$publications.year",my_count:{$sum:1}}},
     {$sort:{_id:1}}
@@ -39,10 +38,10 @@ db.publications.aggregate(
 
 
 //embed author into publications
-db.publications.aggregate([
+db.singapore_publications.aggregate([
     {$lookup:
         {
-            from:'singapore_researchers_copy',
+            from:'singapore_researchers',
             localField: 'author_id',
             foreignField: '_id',
             as: "author"
