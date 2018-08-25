@@ -1,3 +1,8 @@
+//----- Singapore    -----//
+
+
+
+
 //ad ids to all publications
 db.singapore_researchers.find({})
   .forEach(function (doc) {
@@ -26,7 +31,7 @@ db.singapore_researchers.aggregate([
 ])
 
 //create index for publications
-db.singapore_publications.createIndex({"publications.year":1})
+db.singapore_publications.createIndex({"year":1})
 
 //get no. of publications in each year
 db.singapore_publications.aggregate(
@@ -51,12 +56,49 @@ db.singapore_publications.aggregate([
      }
 ])
 
+//patents coolection
+db.singapore_researchers.aggregate([
+    {$unwind:'$patents'       
+    },
+    {$project:{_id:0,author_name:"$name",organisation:1,title:"$patents.title",author_id:"$_id",
+        year:"$patents.year_awarded",country:"$patents.country",number:"$patents.number"
+               }
+    },
+    {$out:"singapore_patents"
+    }
+])
 
 
 
+//----- USA    -----//
+//publication collection
+db.usa_researchers.aggregate([
+    {$unwind:'$Publication'       
+    },
+    {$project:{_id:0,authors:"$Publication.Authors",organisation:"$Primary_Institution",title:"$Publication.title",author_id:"$_id",
+                year:"$Publication.Date",cited:"$Publication.Cited"
+               }
+    },
+    {$out:"usa_publications"
+    }
+])
+
+//create index for publications
+db.usa_publications.createIndex({"year":1})
 
 
+// patent collection
 
+db.usa_researchers.aggregate([
+    {$unwind:'$Patent'       
+    },
+    {$project:{_id:0,organisation:"$Patent.Primary_Institution",title:"$Patent.Title",author_id:"$_id",
+        inventors:"$Patent.Inventors",assignee:"$Patent.Assignee"
+               }
+    },
+    {$out:"usa_patents"
+    }
+])
 
 
 
