@@ -1,9 +1,18 @@
 //----- Singapore    -----//
 
+//save to different database
+use research
+var temp=db.usa_researchers.find({})
+use temp
+temp.forEach(function(doc){
+    db.usa_researchers.save(doc)    
+})
+
+//delete field from collection
+db.singapore_researchers.update({}, {$unset: {publications:1,patents:1}} , {multi: true});
 
 
-
-//ad ids to all publications
+//add ids to all publications
 db.singapore_researchers.find({})
   .forEach(function (doc) {
     doc.publications.forEach(function (publication) {
@@ -56,7 +65,7 @@ db.singapore_publications.aggregate([
      }
 ])
 
-//patents coolection
+//patents collection
 db.singapore_researchers.aggregate([
     {$unwind:'$patents'       
     },
@@ -68,14 +77,42 @@ db.singapore_researchers.aggregate([
     }
 ])
 
+//get distinct values
+db.singapore_publications.aggregate([
+    {$group: {_id: '$title'} }
+]).toArray().length; 
 
+//find total no. of organizations
+db.singapore_researchers.aggregate([
+    {$group: {_id: '$organisation'} }
+]).toArray().length; 
+
+
+//orgs with highest publications
+db.singapore_publications.aggregate([
+    {$group: {_id: '$organisation', count:{ $sum: 1 }} },
+    {$sort:{"count":-1}}
+]); 
+
+//orgs with highest patents
+db.singapore_patents.aggregate([
+    {$group: {_id: '$organisation', count:{ $sum: 1 }} },
+    {$sort:{"count":-1}}
+]); 
+
+
+//orgs with highest researchers
+db.singapore_researchers.aggregate([
+    {$group: {_id: '$organisation', count:{ $sum: 1 }} },
+    {$sort:{"count":-1}}
+]); 
 
 //----- USA    -----//
 //publication collection
 db.usa_researchers.aggregate([
     {$unwind:'$Publication'       
     },
-    {$project:{_id:0,authors:"$Publication.Authors",organisation:"$Primary_Institution",title:"$Publication.title",author_id:"$_id",
+    {$project:{_id:0,authors:"$Publication.Authors",organisation:"$Primary_Institution",title:"$Publication.Title",author_id:"$_id",
                 year:"$Publication.Date",cited:"$Publication.Cited"
                }
     },
